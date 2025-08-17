@@ -73,10 +73,18 @@ EOF
 check_prerequisites() {
     log "INFO" "Verificando prerequisitos..."
     
-    # Verificar Docker
+    # Verificar Docker/Podman
     if ! command -v docker &> /dev/null; then
         log "ERROR" "Docker no está instalado"
         exit 1
+    fi
+    
+    # Detectar si estamos usando Podman
+    if docker --version 2>&1 | grep -q "podman"; then
+        log "INFO" "Detectado Podman emulando Docker"
+        # Crear archivo para silenciar warnings
+        sudo mkdir -p /etc/containers 2>/dev/null || true
+        sudo touch /etc/containers/nodocker 2>/dev/null || true
     fi
     
     # Verificar que Docker esté ejecutándose
@@ -117,11 +125,6 @@ get_user_info() {
     local group_id=$(id -g)
     local username=$(whoami)
     
-    log "INFO" "Información del usuario:"
-    log "INFO" "  - Usuario: $username"
-    log "INFO" "  - UID: $user_id"
-    log "INFO" "  - GID: $group_id"
-    
     echo "$user_id:$group_id:$username"
 }
 
@@ -142,7 +145,12 @@ build_image() {
     
     # Obtener información del usuario
     local user_info=$(get_user_info)
-    IFS=':' read -r user_id group_id username <<< "$user_info"
+    IFS=':' read -r user_id group_id username <<<"$user_info"
+    
+    log "INFO" "Información del usuario:"
+    log "INFO" "  - Usuario: $username"
+    log "INFO" "  - UID: $user_id"
+    log "INFO" "  - GID: $group_id"
     
     log "INFO" "Iniciando construcción de imagen Docker..."
     log "INFO" "Imagen: $IMAGE_NAME:$IMAGE_TAG"

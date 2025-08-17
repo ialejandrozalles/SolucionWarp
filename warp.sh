@@ -254,13 +254,21 @@ main() {
     esac
 }
 
-# Verificación rápida de Docker
-if ! command -v docker &>/dev/null; then
+# Verificación rápida de Docker/Podman
+if ! command -v docker &> /dev/null; then
     error "Docker no está instalado"
     exit 1
 fi
 
-if ! docker info &>/dev/null; then
+# Detectar si estamos usando Podman
+if docker --version 2>&1 | grep -q "podman"; then
+    log "Detectado Podman emulando Docker"
+    # Crear archivo para silenciar warnings
+    sudo mkdir -p /etc/containers 2>/dev/null || true
+    sudo touch /etc/containers/nodocker 2>/dev/null || true
+fi
+
+if ! docker info &> /dev/null; then
     error "Docker no está ejecutándose"
     exit 1
 fi

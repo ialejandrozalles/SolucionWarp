@@ -3,7 +3,8 @@
 FROM ubuntu:22.04
 
 # Información del mantenedor
-LABEL maintainer="ialejandrozalles"
+ARG USERNAME=user
+LABEL maintainer="$USERNAME"
 LABEL description="Warp Terminal en contenedor Docker con soporte X11"
 LABEL version="1.0"
 
@@ -106,10 +107,14 @@ RUN dpkg -i warp-terminal.deb || true \
     && rm -rf /var/lib/apt/lists/* \
     && rm warp-terminal.deb
 
-# Configurar el entorno gráfico
+# Configurar el entorno gráfico y script de entrada
 RUN mkdir -p /tmp/.X11-unix \
     && chmod 1777 /tmp/.X11-unix \
     && chown root:root /tmp/.X11-unix
+
+# Script de entrada universal (debe copiarse como root para tener permisos)
+COPY entrypoint.sh /usr/local/bin/warp-entrypoint.sh
+RUN chmod +x /usr/local/bin/warp-entrypoint.sh
 
 # Cambiar al usuario creado
 USER ${USERNAME}
@@ -120,11 +125,6 @@ WORKDIR /home/${USERNAME}
 # Crear directorio para configuraciones de aplicación
 RUN mkdir -p /home/${USERNAME}/.config \
     && mkdir -p /home/${USERNAME}/.local/share
-
-# Script de entrada universal
-COPY entrypoint.sh /usr/local/bin/warp-entrypoint.sh
-RUN chmod +x /usr/local/bin/warp-entrypoint.sh
-
 # Configuración de variables de entorno para el usuario
 ENV HOME=/home/${USERNAME}
 ENV USER=${USERNAME}
