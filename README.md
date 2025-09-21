@@ -1,8 +1,8 @@
-# 🚀 Warp Terminal Docker - Professional Portable Edition
+# 🚀 Warp Terminal Docker - Multi-Instance Edition
 
 <div align="center">
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)]()
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 [![Platform](https://img.shields.io/badge/platform-Linux-orange.svg)]()
 [![Docker](https://img.shields.io/badge/docker-required-blue.svg)]()
@@ -46,6 +46,9 @@ This project provides a **professional, portable, and production-ready** solutio
 ## ✨ Features
 
 ### Core Features
+- ✅ **Múltiples Instancias** - ejecuta varias terminales Warp simultáneamente
+- ✅ **Gestión de Instancias** - lista, cierra y administra instancias fácilmente
+- ✅ **Nombres Únicos** - cada contenedor tiene un identificador único
 - ✅ **Full Warp Terminal** with all native features
 - ✅ **X11 Graphics Support** with hardware acceleration
 - ✅ **SSH Client & Server** for remote connections
@@ -61,6 +64,8 @@ This project provides a **professional, portable, and production-ready** solutio
 - ✅ **System Monitoring** (tree, htop, net-tools)
 
 ### Professional Features
+- ✅ **Contenedores Independientes** - cada instancia es completamente independiente
+- ✅ **Gestión Inteligente** - comandos dedicados para administrar múltiples instancias
 - ✅ **Zero Configuration** - works out of the box
 - ✅ **Fully Portable** - copy to any Linux system
 - ✅ **Smart Cleanup** - automatic container management
@@ -127,6 +132,21 @@ This project provides a **professional, portable, and production-ready** solutio
 ---
 
 ## 💻 Usage
+
+### Comandos para Múltiples Instancias
+
+```bash
+# Abrir múltiples instancias
+./warp.sh          # Primera instancia
+./warp.sh &        # Segunda instancia en background
+./warp.sh &        # Tercera instancia en background
+
+# Gestionar instancias
+./warp.sh list     # Ver todas las instancias activas
+./warp.sh kill-all # Cerrar todas las instancias
+./warp.sh kill <ID> # Cerrar instancia específica
+./warp.sh logs <ID> # Ver logs de una instancia
+```
 
 ### Basic Commands
 
@@ -450,7 +470,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🎉 Success! 
 
-Your **Warp Terminal Docker Professional Portable Edition** is ready to use!
+Your **Warp Terminal Docker Multi-Instance Edition** is ready to use!
 
 ```bash
 # Start using it now:

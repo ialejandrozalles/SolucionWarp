@@ -185,7 +185,7 @@ clean_dangling_images() {
     local dangling_images=$(docker images -f "dangling=true" -q)
     
     if [ -n "$dangling_images" ]; then
-        docker rmi $dangling_images
+        docker rmi $dangling_images 2>/dev/null || true
         log "SUCCESS" "Imágenes huérfanas eliminadas"
     else
         log "INFO" "No hay imágenes huérfanas para limpiar"

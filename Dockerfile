@@ -5,8 +5,8 @@ FROM ubuntu:22.04
 # Información del mantenedor
 ARG USERNAME=user
 LABEL maintainer="$USERNAME"
-LABEL description="Warp Terminal en contenedor Docker con soporte X11"
-LABEL version="1.0"
+LABEL description="Warp Terminal en contenedor Docker con soporte X11 - Multi-Instance"
+LABEL version="2.1.0"
 
 # Variables de entorno para instalación no interactiva
 ENV DEBIAN_FRONTEND=noninteractive
@@ -14,6 +14,11 @@ ENV DISPLAY=:0
 ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
+
+# Configurar locales para evitar warnings
+RUN apt-get update && apt-get install -y locales \
+    && locale-gen en_US.UTF-8 \
+    && update-locale LANG=en_US.UTF-8
 
 # Actualización del sistema e instalación de dependencias base
 RUN apt-get update && apt-get install -y \
@@ -24,6 +29,7 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     lsb-release \
     software-properties-common \
+    apt-utils \
     # Dependencias gráficas X11
     xorg \
     x11-apps \
@@ -58,6 +64,9 @@ RUN apt-get update && apt-get install -y \
     libdrm2 \
     libxkbcommon0 \
     libwayland-client0 \
+    # Dependencias XKB adicionales (para evitar instalaciones posteriores)
+    libxcb-xkb1 \
+    libxkbcommon-x11-0 \
     # Utilidades del sistema
     dbus-x11 \
     fonts-liberation \
@@ -98,7 +107,7 @@ RUN groupadd -g ${GROUP_ID} ${USERNAME} \
 WORKDIR /opt/warp-terminal
 COPY warp-terminal.deb /opt/warp-terminal/
 
-# Instalar Warp Terminal
+# Instalar Warp Terminal con manejo mejorado de dependencias
 RUN dpkg -i warp-terminal.deb || true \
     && apt-get update \
     && apt-get install -f -y \
@@ -125,6 +134,7 @@ WORKDIR /home/${USERNAME}
 # Crear directorio para configuraciones de aplicación
 RUN mkdir -p /home/${USERNAME}/.config \
     && mkdir -p /home/${USERNAME}/.local/share
+
 # Configuración de variables de entorno para el usuario
 ENV HOME=/home/${USERNAME}
 ENV USER=${USERNAME}
