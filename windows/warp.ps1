@@ -220,7 +220,8 @@ function Start-NewInstance {
         Log "Usando sesión persistente '$sessionName' en $sessionPath"
         $dockerArgs += @(
             "-v"
-            "$sessionPath:/home/$currentUser"
+            "${sessionPath}:/home/$currentUser"
+
         )
     } else {
         Log "Sesión efímera (sin persistencia en disco host)"

@@ -1,17 +1,17 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 # Warp Terminal Docker Entrypoint - Windows/WSL2 Edition
-# Configura automáticamente el entorno WSLg y lanza aplicaciones
+# Configura automÃ¡ticamente el entorno WSLg y lanza aplicaciones
 # Compatible con Docker Desktop en Windows 10/11
 
 set -e
 
-# Función de logging
+# FunciÃ³n de logging
 log() {
     echo "[WARP-DOCKER-WSL2] $(date '+%Y-%m-%d %H:%M:%S') - $1"
 }
 
-# Función para verificar WSLg
+# FunciÃ³n para verificar WSLg
 check_wslg() {
     log "Verificando entorno WSLg..."
     
@@ -27,13 +27,13 @@ check_wslg() {
             log "PulseAudio configurado: /mnt/wslg/PulseServer"
         fi
     else
-        log "WARNING: /mnt/wslg no está montado"
-        log "Asegúrate de ejecutar con: -v /mnt/wslg:/mnt/wslg"
+        log "WARNING: /mnt/wslg no estÃ¡ montado"
+        log "AsegÃºrate de ejecutar con: -v /mnt/wslg:/mnt/wslg"
     fi
     
     # Verificar DISPLAY
     if [ -z "$DISPLAY" ]; then
-        log "WARNING: Variable DISPLAY no está configurada"
+        log "WARNING: Variable DISPLAY no estÃ¡ configurada"
         export DISPLAY=:0
     fi
     
@@ -41,9 +41,9 @@ check_wslg() {
     log "WAYLAND_DISPLAY=$WAYLAND_DISPLAY"
 }
 
-# Función para verificar conexión X11/Wayland
+# FunciÃ³n para verificar conexiÃ³n X11/Wayland
 check_display() {
-    log "Verificando conexión de display..."
+    log "Verificando conexiÃ³n de display..."
     
     # Intentar con Wayland primero (preferido en WSLg)
     if [ -n "$WAYLAND_DISPLAY" ] && [ -e "${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}" ]; then
@@ -54,32 +54,32 @@ check_display() {
     # Intentar con X11
     if [ -n "$DISPLAY" ]; then
         if timeout 3 xset q &>/dev/null 2>&1; then
-            log "Conexión X11 exitosa en $DISPLAY"
+            log "ConexiÃ³n X11 exitosa en $DISPLAY"
             return 0
         else
             log "WARNING: No se puede conectar a X11 en $DISPLAY"
         fi
     fi
     
-    log "Continuando sin verificación de display..."
+    log "Continuando sin verificaciÃ³n de display..."
     return 1
 }
 
-# Función para configurar el entorno gráfico
+# FunciÃ³n para configurar el entorno grÃ¡fico
 setup_graphics() {
-    log "Configurando entorno gráfico..."
+    log "Configurando entorno grÃ¡fico..."
     
     # Crear directorio temporal para X11 si no existe
     mkdir -p /tmp/.X11-unix 2>/dev/null || true
     
-    # Configurar autorización X11 si existe
+    # Configurar autorizaciÃ³n X11 si existe
     if [ -f "/tmp/.X11-auth" ]; then
         cp /tmp/.X11-auth ~/.Xauthority 2>/dev/null || true
         chmod 600 ~/.Xauthority 2>/dev/null || true
         log "Archivo .Xauthority configurado"
     fi
     
-    # Variables para aplicaciones gráficas
+    # Variables para aplicaciones grÃ¡ficas
     export QT_X11_NO_MITSHM=1
     export _X11_NO_MITSHM=1
     export _MITSHM=0
@@ -90,14 +90,14 @@ setup_graphics() {
     export QT_QPA_PLATFORM=xcb
     export SDL_VIDEODRIVER=x11
     
-    log "Variables de entorno gráfico configuradas"
+    log "Variables de entorno grÃ¡fico configuradas"
 }
 
-# Función para inicializar servicios
+# FunciÃ³n para inicializar servicios
 init_services() {
     log "Inicializando servicios..."
     
-    # Iniciar D-Bus si no está ejecutándose
+    # Iniciar D-Bus si no estÃ¡ ejecutÃ¡ndose
     if ! pgrep -x "dbus-daemon" > /dev/null 2>&1; then
         log "Iniciando D-Bus..."
         dbus-daemon --session --fork 2>/dev/null || true
@@ -111,22 +111,22 @@ init_services() {
     fi
 }
 
-# Función para verificar dependencias
+# FunciÃ³n para verificar dependencias
 check_dependencies() {
     log "Verificando dependencias..."
     
-    # Verificar que Warp Terminal esté instalado
+    # Verificar que Warp Terminal estÃ© instalado
     if ! command -v warp-terminal &> /dev/null; then
-        log "ERROR: Warp Terminal no está instalado"
+        log "ERROR: Warp Terminal no estÃ¡ instalado"
         exit 1
     fi
     
     log "Warp Terminal encontrado: $(which warp-terminal)"
 }
 
-# Función para mostrar información del sistema
+# FunciÃ³n para mostrar informaciÃ³n del sistema
 show_system_info() {
-    log "=== Información del Sistema ==="
+    log "=== InformaciÃ³n del Sistema ==="
     log "Usuario: $(whoami)"
     log "Home: $HOME"
     log "Display: $DISPLAY"
@@ -141,7 +141,7 @@ show_system_info() {
     log "=============================="
 }
 
-# Función de limpieza
+# FunciÃ³n de limpieza
 cleanup() {
     log "Ejecutando limpieza..."
     
@@ -154,7 +154,7 @@ cleanup() {
 # Configurar trap para limpieza
 trap cleanup EXIT INT TERM
 
-# Función principal
+# FunciÃ³n principal
 main() {
     log "=== Iniciando Warp Terminal en Docker (Windows/WSL2) ==="
     
@@ -166,19 +166,19 @@ main() {
     # Configurar WSLg
     check_wslg
     
-    # Configurar entorno gráfico
+    # Configurar entorno grÃ¡fico
     setup_graphics
     
     # Inicializar servicios
     init_services
     
-    # Verificar conexión de display
+    # Verificar conexiÃ³n de display
     check_display || log "WARNING: Display no verificado, intentando ejecutar de todos modos..."
     
     # Ejecutar comando solicitado
     if [ $# -eq 0 ] || [ "$1" = "warp-terminal" ]; then
         log "Ejecutando Warp Terminal..."
-        log "Si Warp no inicia, verifica que WSLg esté habilitado en Windows"
+        log "Si Warp no inicia, verifica que WSLg estÃ© habilitado en Windows"
         exec warp-terminal
     else
         log "Ejecutando comando personalizado: $*"
@@ -186,5 +186,5 @@ main() {
     fi
 }
 
-# Ejecutar función principal
+# Ejecutar funciÃ³n principal
 main "$@"

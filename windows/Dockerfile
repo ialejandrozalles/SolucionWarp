@@ -90,15 +90,14 @@ RUN groupadd -g ${GROUP_ID} ${USERNAME} || groupmod -n ${USERNAME} $(getent grou
 
 # Instalar Warp Terminal
 # Nota: Para Windows, descargamos el .deb desde URL
-RUN mkdir -p /opt/warp-terminal && \
-    cd /opt/warp-terminal && \
-    wget -O warp-terminal.deb "https://app.warp.dev/get_warp?package=deb" && \
-    dpkg -i warp-terminal.deb || true && \
+# Copiar Warp Terminal desde archivo local
+COPY warp-terminal.deb /opt/warp-terminal/warp-terminal.deb
+RUN dpkg -i /opt/warp-terminal/warp-terminal.deb || true && \
     apt-get update && apt-get install -f -y && \
-    dpkg -i warp-terminal.deb && \
+    dpkg -i /opt/warp-terminal/warp-terminal.deb && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm warp-terminal.deb
+    rm -rf /var/lib/apt/lists/*
+
 
 # Configurar directorio X11
 RUN mkdir -p /tmp/.X11-unix && \
