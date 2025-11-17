@@ -48,6 +48,11 @@ RUN apt-get update && apt-get install -y \
     libwayland-client0 \
     libwayland-egl1 \
     libwayland-server0 \
+        # Librerías multimedia y sonido
+    libasound2 \
+    libasound2-plugins \
+    libpulse0 \
+    pulseaudio-utils \
     # Fuentes
     fonts-liberation \
     fonts-dejavu-core \

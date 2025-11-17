@@ -77,7 +77,7 @@ function Warning {
     Write-ColorOutput -Message $Message -Color "Yellow" -Prefix "WARNING"
 }
 
-function Error {
+function Write-ErrorMessage {
     param([string]$Message)
     Write-ColorOutput -Message $Message -Color "Red" -Prefix "ERROR"
 }
@@ -85,7 +85,7 @@ function Error {
 # Verificar Docker Desktop
 function Test-Docker {
     if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
-        Error "Docker no está instalado o no está en el PATH"
+        Write-ErrorMessage "Docker no está instalado o no está en el PATH"
         Log "Por favor instala Docker Desktop para Windows desde: https://www.docker.com/products/docker-desktop"
         exit 1
     }
@@ -96,7 +96,7 @@ function Test-Docker {
             throw
         }
     } catch {
-        Error "Docker Desktop no está ejecutándose"
+        Write-ErrorMessage "Docker Desktop no está ejecutándose"
         Log "Por favor inicia Docker Desktop e intenta nuevamente"
         exit 1
     }
@@ -137,11 +137,11 @@ function Build-ImageIfNeeded {
         if (Test-Path $buildScript) {
             & $buildScript
             if ($LASTEXITCODE -ne 0) {
-                Error "Error al construir la imagen"
+                Write-ErrorMessage "Error al construir la imagen"
                 exit 1
             }
         } else {
-            Error "No se encontró build.ps1"
+            Write-ErrorMessage "No se encontró build.ps1"
             exit 1
         }
     }
@@ -220,7 +220,7 @@ function Start-NewInstance {
         Log "Usando sesión persistente '$sessionName' en $sessionPath"
         $dockerArgs += @(
             "-v"
-            "$sessionPath:/home/$currentUser"
+            "${sessionPath}:/home/$currentUser"
         )
     } else {
         Log "Sesión efímera (sin persistencia en disco host)"
@@ -273,7 +273,7 @@ function Stop-Instance {
     param([string]$InstanceId)
     
     if ([string]::IsNullOrWhiteSpace($InstanceId)) {
-        Error "Debes especificar el ID o nombre de la instancia"
+        Write-ErrorMessage "Debes especificar el ID o nombre de la instancia"
         Log "Uso: .\warp.ps1 kill <instance-id>"
         exit 1
     }
@@ -284,7 +284,7 @@ function Stop-Instance {
     $container = docker ps -q --filter "name=$InstanceId" 2>$null
     
     if ([string]::IsNullOrWhiteSpace($container)) {
-        Error "No se encontró la instancia: $InstanceId"
+        Write-ErrorMessage "No se encontró la instancia: $InstanceId"
         exit 1
     }
     
@@ -299,7 +299,7 @@ function Show-InstanceLogs {
     param([string]$InstanceId)
     
     if ([string]::IsNullOrWhiteSpace($InstanceId)) {
-        Error "Debes especificar el ID o nombre de la instancia"
+        Write-ErrorMessage "Debes especificar el ID o nombre de la instancia"
         Log "Uso: .\warp.ps1 logs <instance-id>"
         exit 1
     }
@@ -463,7 +463,7 @@ function Invoke-Main {
         "-h" { Show-Help }
         
         default {
-            Error "Comando desconocido: $Cmd"
+            Write-ErrorMessage "Comando desconocido: $Cmd"
             Log "Usa '.\warp.ps1 help' para ver los comandos disponibles"
             exit 1
         }
