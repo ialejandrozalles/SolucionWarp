@@ -100,36 +100,30 @@ This project provides a **professional, portable, and production-ready** solutio
 
 ## 🚀 Quick Start
 
-### Option 1: Full Automatic (Recommended)
+### Uso básico
 ```bash
-# Download Warp Terminal package if needed
-./setup.sh
-
-# Build and run in one command
-./warp.sh
-```
-
-### Option 2: Manual Control
-```bash
-# 1. Download Warp Terminal
-./setup.sh
-
-# 2. Build Docker image  
-./build.sh
-
-# 3. Run Warp Terminal
-./warp.sh
-```
-
-### Option 3: One-Line Installation
-```bash
-# Download, build, and run
+# Construir la imagen (solo la primera vez o cuando quieras actualizar Warp)
 ./warp.sh build
+
+# Ejecutar Warp Terminal (crea una nueva instancia)
+./warp.sh
 ```
 
-**That's it!** Warp Terminal will appear on your desktop in a few seconds.
+### Actualizar Warp a la última versión
+```bash
+# Reconstruye la imagen usando siempre el .deb más reciente
+./warp.sh rebuild
+```
+
+### Varias instancias simultáneas
+```bash
+./warp.sh          # Primera instancia
+./warp.sh &        # Segunda instancia
+./warp.sh &        # Tercera instancia
+```
 
 ---
+
 
 ## 💻 Usage
 
@@ -413,25 +407,20 @@ docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock
 ## 📁 Project Structure
 
 ```
-warp-docker/
-├── 🚀 warp.sh              # Main launcher (auto-everything)
-├── 🏗️ build.sh             # Docker image builder
-├── 🐳 Dockerfile           # Container configuration
-├── ⚙️ entrypoint.sh         # Container entry point
-├── 📥 setup.sh              # Warp Terminal downloader
-├── 📦 warp-terminal.deb     # Warp Terminal package (40MB)
-└── 📖 README.md             # This documentation
+linux/
+├── warp.sh              # Lanzador principal multi-instancia
+├── build.sh             # Script de build de la imagen Docker
+├── Dockerfile           # Definición de imagen (descarga Warp .deb desde el servidor)
+├── entrypoint.sh        # Entrypoint dentro del contenedor
+└── README.md            # Documentación para Linux
 ```
 
-### File Sizes
-- **Scripts**: ~30KB total
-- **Warp Package**: ~40MB
-- **Built Image**: ~1.2GB
-- **Total Project**: ~1.3GB
-
----
+### Tamaños aproximados
+- **Scripts**: ~30KB
+- **Imagen construida**: ~1.2GB
 
 ## 🔒 Security Considerations
+
 
 ### Container Security
 - ✅ **Non-root user** inside container

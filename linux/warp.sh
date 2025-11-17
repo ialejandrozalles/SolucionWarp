@@ -12,6 +12,7 @@ readonly IMAGE_NAME="warp-terminal"
 readonly IMAGE_TAG="latest"
 readonly BASE_CONTAINER_NAME="warp-terminal"
 readonly PROJECT_VERSION="2.1.0"
+readonly SESSIONS_DIR="$HOME/.warp-multi/sessions"
 
 # Colores
 RED='\033[0;31m'
@@ -298,6 +299,29 @@ run_warp_terminal() {
     docker_cmd="$docker_cmd -v $HOME/.Xauthority:/tmp/.X11-auth:ro"
     docker_cmd="$docker_cmd -v /dev/shm:/dev/shm"
     docker_cmd="$docker_cmd -v /etc/localtime:/etc/localtime:ro"
+    
+    # Soporte de sesiones persistentes basadas en variables de entorno
+    local session_name="${WARP_SESSION_NAME:-}"
+    local reset_session="${WARP_SESSION_RESET:-0}"
+    local host_home="$HOME"
+    local container_home="/home/$current_user"
+
+    if [ -n "$session_name" ]; then
+        local session_path="$SESSIONS_DIR/$session_name"
+
+        if [ "$reset_session" != "0" ] && [ -d "$session_path" ]; then
+            log "Reiniciando sesión persistente '$session_name' (borrando datos previos)..."
+            rm -rf "$session_path"
+        fi
+
+        mkdir -p "$session_path"
+        log "Usando sesión persistente '$session_name' en $session_path"
+
+        # Montar el directorio de sesión como HOME dentro del contenedor
+        docker_cmd="$docker_cmd -v $session_path:$container_home"
+    else
+        log "Sesión efímera (sin persistencia en disco host)"
+    fi
     
     # Directorio de trabajo (dinámico para portabilidad)
     docker_cmd="$docker_cmd --workdir /home/$current_user"

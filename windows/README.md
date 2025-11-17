@@ -43,44 +43,15 @@ Si usas Windows 10, necesitarás instalar un servidor X11:
 
 ## 🚀 Inicio Rápido
 
-### 1. Verificar Prerrequisitos
-
-Abre PowerShell y verifica que Docker Desktop esté instalado y ejecutándose:
-
-```powershell
-docker --version
-docker ps
-```
-
-### 2. Instalación Simple
-
 ```powershell
 # Navegar al directorio del proyecto
 cd path\to\SolucionWarp\windows
 
-# Ejecutar configuración inicial
-.\setup.ps1
-
-# Construir y ejecutar
-.\warp.ps1
-```
-
-### 3. Método Manual
-
-Si prefieres control total:
-
-```powershell
-# 1. Construir la imagen Docker
-.\build.ps1
-
-# 2. Ejecutar Warp Terminal
-.\warp.ps1
-```
-
-### 4. One-Liner
-
-```powershell
+# Construir la imagen Docker (solo la primera vez o para actualizar Warp)
 .\warp.ps1 build
+
+# Ejecutar Warp Terminal
+.\warp.ps1
 ```
 
 ## 📖 Guía de Uso
@@ -395,25 +366,21 @@ docker info
 
 ```
 windows/
-├── warp.ps1                    # Script principal de launcher
-├── setup.ps1                   # Script de configuración inicial
-├── build.ps1                   # Script de construcción de imagen
-├── demo-multi-instance.ps1     # Script de demostración
-├── Dockerfile                  # Definición de imagen Docker
-├── entrypoint.sh              # Script de entrada del contenedor
-└── README.md                  # Este archivo
+├── warp.ps1         # Script principal de launcher multi-instancia
+├── build.ps1        # Script de construcción de imagen
+├── Dockerfile       # Definición de imagen Docker
+├── entrypoint.sh    # Script de entrada del contenedor
+└── README.md        # Documentación para Windows
 ```
 
 ### Descripción de Archivos
 
-| Archivo | Propósito |
-|---------|-----------|
-| `warp.ps1` | Launcher principal con gestión de múltiples instancias |
-| `setup.ps1` | Configuración inicial y descarga de dependencias |
-| `build.ps1` | Construcción de imagen Docker con opciones |
-| `demo-multi-instance.ps1` | Demostración de características |
-| `Dockerfile` | Imagen Ubuntu 22.04 con Warp Terminal y WSLg |
-| `entrypoint.sh` | Configuración de entorno y lanzamiento |
+| Archivo       | Propósito                                        |
+|---------------|--------------------------------------------------|
+| `warp.ps1`    | Launcher principal con gestión de múltiples instancias |
+| `build.ps1`   | Construcción de imagen Docker con opciones       |
+| `Dockerfile`  | Imagen Ubuntu 22.04 con Warp Terminal y WSLg     |
+| `entrypoint.sh` | Configuración de entorno y lanzamiento dentro del contenedor |
 
 ## 🔐 Seguridad
 

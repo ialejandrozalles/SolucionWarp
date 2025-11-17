@@ -196,8 +196,37 @@ function Start-NewInstance {
         "/mnt/wslg:/mnt/wslg"
         "-v"
         "/run/user:/run/user"
-        "${Script:IMAGE_NAME}:${Script:IMAGE_TAG}"
     )
+
+    # Sesiones persistentes controladas por variables de entorno (compatibles con Linux)
+    $sessionName = $env:WARP_SESSION_NAME
+    $resetSession = $env:WARP_SESSION_RESET
+    $hostHome = $env:HOME
+    $currentUser = $env:USER
+
+    if (-not [string]::IsNullOrWhiteSpace($sessionName)) {
+        $sessionsRoot = Join-Path $hostHome ".warp-multi/sessions"
+        $sessionPath = Join-Path $sessionsRoot $sessionName
+
+        if ($resetSession -and (Test-Path $sessionPath)) {
+            Log "Reiniciando sesión persistente '$sessionName' (borrando datos previos)..."
+            Remove-Item -Recurse -Force $sessionPath
+        }
+
+        if (-not (Test-Path $sessionPath)) {
+            New-Item -ItemType Directory -Path $sessionPath -Force | Out-Null
+        }
+
+        Log "Usando sesión persistente '$sessionName' en $sessionPath"
+        $dockerArgs += @(
+            "-v"
+            "$sessionPath:/home/$currentUser"
+        )
+    } else {
+        Log "Sesión efímera (sin persistencia en disco host)"
+    }
+
+    $dockerArgs += "${Script:IMAGE_NAME}:${Script:IMAGE_TAG}"
     
     & docker $dockerArgs
 }

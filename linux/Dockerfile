@@ -88,7 +88,7 @@ RUN groupadd -g ${GROUP_ID} ${USERNAME} || groupmod -n ${USERNAME} $(getent grou
 # Descargar el .deb desde la página oficial
 RUN mkdir -p /opt/warp-terminal && \
     cd /opt/warp-terminal && \
-    wget -O warp-terminal.deb "https://app.warp.dev/get_warp?package=deb" && \
+    wget -O warp-terminal.deb "https://app.warp.dev/download?package=deb" && \
     dpkg -i warp-terminal.deb || true && \
     apt-get update && apt-get install -f -y && \
     dpkg -i warp-terminal.deb && \
