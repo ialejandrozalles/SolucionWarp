@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script de configuración inicial para Warp Terminal Docker
-# Descarga el archivo .deb necesario automáticamente
+# Ya no requiere descargar el .deb manualmente
 
 set -e
 
@@ -28,9 +28,6 @@ error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Información del archivo
-DEB_FILE="warp-terminal.deb"
-DOWNLOAD_URL="https://app.warp.dev/get_warp?package=deb"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 main() {
@@ -38,50 +35,50 @@ main() {
     log "🚀 Configuración inicial de Warp Terminal Docker"
     echo
     
-    # Verificar si el archivo ya existe
-    if [ -f "$SCRIPT_DIR/$DEB_FILE" ]; then
-        success "Archivo $DEB_FILE ya existe"
-        echo
-        log "¡Todo listo! Ejecuta: ./warp.sh"
-        exit 0
-    fi
-    
-    log "Descargando Warp Terminal..."
-    log "URL: $DOWNLOAD_URL"
-    
-    # Verificar wget
-    if ! command -v wget &> /dev/null; then
-        error "wget no está instalado"
-        log "Instalando wget..."
-        sudo apt update && sudo apt install -y wget
-    fi
-    
-    # Descargar archivo
-    if wget -O "$SCRIPT_DIR/$DEB_FILE" "$DOWNLOAD_URL"; then
-        success "Warp Terminal descargado exitosamente"
-        
-        # Verificar integridad del archivo
-        if [ -f "$SCRIPT_DIR/$DEB_FILE" ] && [ -s "$SCRIPT_DIR/$DEB_FILE" ]; then
-            local file_size=$(stat -c%s "$SCRIPT_DIR/$DEB_FILE")
-            success "Archivo válido ($(numfmt --to=iec $file_size))"
-        else
-            error "El archivo descargado está corrupto"
-            rm -f "$SCRIPT_DIR/$DEB_FILE"
-            exit 1
-        fi
-    else
-        error "Error al descargar Warp Terminal"
+    # Verificar Docker
+    if ! command -v docker &> /dev/null; then
+        error "Docker no está instalado"
+        log "Por favor instala Docker desde: https://docs.docker.com/engine/install/"
         exit 1
+    fi
+    
+    success "Docker encontrado: $(docker --version)"
+    
+    # Verificar que Docker esté ejecutándose
+    if ! docker ps &> /dev/null; then
+        error "Docker no está ejecutándose"
+        log "Por favor inicia el servicio Docker"
+        exit 1
+    fi
+    
+    success "Docker está ejecutándose"
+    
+    # Verificar X11
+    if [ -z "$DISPLAY" ]; then
+        warning "Variable DISPLAY no está configurada"
+        log "Es posible que X11 no esté disponible"
+    else
+        success "X11 detectado: DISPLAY=$DISPLAY"
     fi
     
     echo
     success "✅ Configuración completada!"
     echo
-    log "Próximos pasos:"
-    log "1. Ejecutar: ./warp.sh"
-    log "   - O para más control: ./build.sh && ./run.sh"
+    log "📋 Próximos pasos:"
     echo
-    log "Para ayuda detallada, consulta README.md"
+    echo "  1. Construir la imagen Docker:"
+    echo "     ./build.sh"
+    echo
+    echo "  2. Ejecutar Warp Terminal:"
+    echo "     ./warp.sh"
+    echo
+    echo "  O usa el comando todo-en-uno:"
+    echo "     ./warp.sh build"
+    echo
+    log "ℹ️  Nota: El archivo .deb se descarga automáticamente durante el build"
+    log "   Ya no es necesario descargarlo manualmente"
+    echo
+    log "Para más información, consulta README.md"
     echo
 }
 

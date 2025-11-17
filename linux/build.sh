@@ -99,17 +99,6 @@ check_prerequisites() {
         exit 1
     fi
     
-    # Verificar archivo .deb (cualquier nombre)
-    local deb_files=("$SCRIPT_DIR"/*.deb)
-    if [ ! -f "${deb_files[0]}" ]; then
-        log "ERROR" "Archivo .deb no encontrado en: $SCRIPT_DIR"
-        log "INFO" "Ejecuta primero: ./setup.sh"
-        log "INFO" "O descarga manualmente con: wget -O warp-terminal.deb 'https://app.warp.dev/get_warp?package=deb'"
-        exit 1
-    else
-        log "SUCCESS" "Archivo .deb encontrado: $(basename "${deb_files[0]}")"
-    fi
-    
     # Verificar entrypoint.sh
     if [ ! -f "$SCRIPT_DIR/entrypoint.sh" ]; then
         log "ERROR" "Script entrypoint.sh no encontrado: $SCRIPT_DIR/entrypoint.sh"

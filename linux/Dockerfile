@@ -1,158 +1,136 @@
-# Dockerfile para Warp Terminal con soporte X11
-# Base: Ubuntu 22.04 LTS para compatibilidad óptima
+# Warp Terminal Docker - Multi-Instance Edition
+# Base: Ubuntu 22.04 LTS con soporte X11
 FROM ubuntu:22.04
 
-# Información del mantenedor
-ARG USERNAME=user
-LABEL maintainer="$USERNAME"
+# Metadata
+LABEL maintainer="Container User"
 LABEL description="Warp Terminal en contenedor Docker con soporte X11 - Multi-Instance"
 LABEL version="2.1.0"
 
-# Variables de entorno para instalación no interactiva
-ENV DEBIAN_FRONTEND=noninteractive
-ENV DISPLAY=:0
-ENV LANG=en_US.UTF-8
-ENV LANGUAGE=en_US:en
-ENV LC_ALL=en_US.UTF-8
+# Build arguments para usuario dinámico
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+ARG USERNAME=user
 
-# Configurar locales para evitar warnings
-RUN apt-get update && apt-get install -y locales \
-    && locale-gen en_US.UTF-8 \
-    && update-locale LANG=en_US.UTF-8
+# Variables de entorno
+ENV DEBIAN_FRONTEND=noninteractive \
+    DISPLAY=:0 \
+    LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8 \
+    TZ=UTC
 
-# Actualización del sistema e instalación de dependencias base
+# Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
-    # Dependencias del sistema
-    ca-certificates \
-    wget \
-    curl \
-    gnupg \
-    lsb-release \
-    software-properties-common \
-    apt-utils \
-    # Dependencias gráficas X11
-    xorg \
-    x11-apps \
-    x11-utils \
-    x11-xserver-utils \
-    # Dependencias de librerías gráficas
+    # Locales
+    locales \
+    tzdata \
+    # X11 y gráficos
     libx11-6 \
+    libx11-xcb1 \
+    libxcb1 \
     libxext6 \
     libxrender1 \
     libxtst6 \
     libxi6 \
     libxrandr2 \
     libxss1 \
-    libgconf-2-4 \
-    libasound2 \
-    libpangocairo-1.0-0 \
-    libatk1.0-0 \
-    libcairo-gobject2 \
-    libgtk-3-0 \
-    libgdk-pixbuf2.0-0 \
-    # Dependencias adicionales para aplicaciones modernas
-    libxcomposite1 \
     libxcursor1 \
+    libxcomposite1 \
     libxdamage1 \
     libxfixes3 \
     libxinerama1 \
-    libxrandr2 \
-    libxss1 \
-    libxtst6 \
-    libappindicator3-1 \
-    libnss3 \
-    libdrm2 \
-    libxkbcommon0 \
+    libxkbfile1 \
+    # GTK y Wayland
+    libgtk-3-0 \
+    libgdk-pixbuf2.0-0 \
+    libglib2.0-0 \
     libwayland-client0 \
-    # Dependencias XKB adicionales (para evitar instalaciones posteriores)
-    libxcb-xkb1 \
-    libxkbcommon-x11-0 \
-    # Utilidades del sistema
-    dbus-x11 \
+    libwayland-egl1 \
+    libwayland-server0 \
+    # Fuentes
     fonts-liberation \
     fonts-dejavu-core \
-    fontconfig \
-    # Herramientas de depuración
-    strace \
-    gdb \
-    # Herramientas de red y conectividad
-    openssh-client \
-    openssh-server \
+    # Herramientas de red
+    curl \
+    wget \
     net-tools \
     iputils-ping \
-    telnet \
-    netcat \
-    rsync \
+    dnsutils \
+    # SSH
+    openssh-server \
+    openssh-client \
+    # Herramientas de desarrollo
     git \
     vim \
     nano \
     htop \
-    tree \
-    zip \
-    unzip \
-    && apt-get clean \
+    strace \
+    gdb \
+    # Utilidades
+    sudo \
+    ca-certificates \
+    xdg-utils \
+    dbus-x11 \
+    x11-xserver-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user matching host user (portable)
-ARG USER_ID=1000
-ARG GROUP_ID=1000
-ARG USERNAME=user
+# Configurar locales
+RUN locale-gen en_US.UTF-8 && \
+    update-locale LANG=en_US.UTF-8
 
-RUN groupadd -g ${GROUP_ID} ${USERNAME} \
-    && useradd -u ${USER_ID} -g ${GROUP_ID} -m -s /bin/bash ${USERNAME} \
-    && usermod -aG sudo ${USERNAME} \
-    && echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+# Crear usuario no-root con el mismo UID/GID del host
+RUN groupadd -g ${GROUP_ID} ${USERNAME} || groupmod -n ${USERNAME} $(getent group ${GROUP_ID} | cut -d: -f1) && \
+    useradd -u ${USER_ID} -g ${GROUP_ID} -m -s /bin/bash ${USERNAME} || usermod -l ${USERNAME} $(id -nu ${USER_ID}) && \
+    echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# Crear directorio de trabajo y copiar el archivo .deb
-WORKDIR /opt/warp-terminal
-COPY warp-terminal.deb /opt/warp-terminal/
+# Instalar Warp Terminal
+# Descargar el .deb desde la página oficial
+RUN mkdir -p /opt/warp-terminal && \
+    cd /opt/warp-terminal && \
+    wget -O warp-terminal.deb "https://app.warp.dev/get_warp?package=deb" && \
+    dpkg -i warp-terminal.deb || true && \
+    apt-get update && apt-get install -f -y && \
+    dpkg -i warp-terminal.deb && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm warp-terminal.deb
 
-# Instalar Warp Terminal con manejo mejorado de dependencias
-RUN dpkg -i warp-terminal.deb || true \
-    && apt-get update \
-    && apt-get install -f -y \
-    && dpkg -i warp-terminal.deb \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm warp-terminal.deb
+# Configurar directorio X11
+RUN mkdir -p /tmp/.X11-unix && \
+    chmod 1777 /tmp/.X11-unix
 
-# Configurar el entorno gráfico y script de entrada
-RUN mkdir -p /tmp/.X11-unix \
-    && chmod 1777 /tmp/.X11-unix \
-    && chown root:root /tmp/.X11-unix
-
-# Script de entrada universal (debe copiarse como root para tener permisos)
+# Copiar entrypoint
 COPY entrypoint.sh /usr/local/bin/warp-entrypoint.sh
 RUN chmod +x /usr/local/bin/warp-entrypoint.sh
 
-# Cambiar al usuario creado
+# Cambiar al usuario no-root
 USER ${USERNAME}
 
-# Configurar directorio home del usuario
-WORKDIR /home/${USERNAME}
+# Configurar variables de entorno del usuario
+ENV HOME=/home/${USERNAME} \
+    USER=${USERNAME} \
+    XDG_RUNTIME_DIR=/tmp/runtime-${USERNAME} \
+    XDG_CONFIG_HOME=/home/${USERNAME}/.config \
+    XDG_DATA_HOME=/home/${USERNAME}/.local/share
 
-# Crear directorio para configuraciones de aplicación
-RUN mkdir -p /home/${USERNAME}/.config \
-    && mkdir -p /home/${USERNAME}/.local/share
+# Crear directorios de configuración
+RUN mkdir -p ${XDG_CONFIG_HOME} ${XDG_DATA_HOME}
 
-# Configuración de variables de entorno para el usuario
-ENV HOME=/home/${USERNAME}
-ENV USER=${USERNAME}
-ENV XDG_RUNTIME_DIR=/tmp/runtime-${USERNAME}
-ENV XDG_CONFIG_HOME=/home/${USERNAME}/.config
-ENV XDG_DATA_HOME=/home/${USERNAME}/.local/share
-
-# Crear directorio runtime
+# Crear directorio runtime (como root, luego cambiar permisos)
 USER root
-RUN mkdir -p /tmp/runtime-${USERNAME} \
-    && chown ${USERNAME}:${USERNAME} /tmp/runtime-${USERNAME} \
-    && chmod 700 /tmp/runtime-${USERNAME}
+RUN mkdir -p /tmp/runtime-${USERNAME} && \
+    chmod 700 /tmp/runtime-${USERNAME} && \
+    chown ${USER_ID}:${GROUP_ID} /tmp/runtime-${USERNAME}
 
 # Volver al usuario no-root
 USER ${USERNAME}
 
-# Punto de entrada universal
+# Directorio de trabajo
+WORKDIR /home/${USERNAME}
+
+# Entrypoint
 ENTRYPOINT ["/usr/local/bin/warp-entrypoint.sh"]
 
-# Comando por defecto (arrancar Warp Terminal)
+# Comando por defecto
 CMD ["warp-terminal"]
