@@ -69,7 +69,7 @@ function Warning {
     Write-ColorOutput -Message $Message -Color "Yellow" -Prefix "WARNING"
 }
 
-function Error {
+function Write-ErrorMessage {
     param([string]$Message)
     Write-ColorOutput -Message $Message -Color "Red" -Prefix "ERROR"
 }
@@ -78,7 +78,7 @@ function Error {
 function Test-Prerequisites {
     # Docker
     if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
-        Error "Docker no está instalado"
+        Write-ErrorMessage "Docker no está instalado"
         Log "Instala Docker Desktop desde: https://www.docker.com/products/docker-desktop"
         exit 1
     }
@@ -89,20 +89,20 @@ function Test-Prerequisites {
             throw
         }
     } catch {
-        Error "Docker Desktop no está ejecutándose"
+        Write-ErrorMessage "Docker Desktop no está ejecutándose"
         exit 1
     }
     
     # Dockerfile
     if (-not (Test-Path $Script:DOCKERFILE)) {
-        Error "No se encontró Dockerfile en: $Script:DOCKERFILE"
+        Write-ErrorMessage "No se encontró Dockerfile en: $Script:DOCKERFILE"
         exit 1
     }
     
     # entrypoint.sh
     $entrypoint = Join-Path $Script:SCRIPT_DIR "entrypoint.sh"
     if (-not (Test-Path $entrypoint)) {
-        Error "No se encontró entrypoint.sh"
+        Write-ErrorMessage "No se encontró entrypoint.sh"
         exit 1
     }
     
@@ -150,7 +150,7 @@ function Build-DockerImage {
     & docker $buildArgs
     
     if ($LASTEXITCODE -ne 0) {
-        Error "Error al construir la imagen"
+        Write-ErrorMessage "Error al construir la imagen"
         exit 1
     }
     
